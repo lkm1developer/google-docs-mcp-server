@@ -380,7 +380,7 @@ export class GoogleDocsClient {
         timestamp: new Date().toISOString(),
         details: {
           authType: this.getAuthType(),
-          apiVersion: this.docsClient.context?.version || 'v1',
+          apiVersion: 'v1',
           documentCount: response.data.files?.length || 0
         }
       };

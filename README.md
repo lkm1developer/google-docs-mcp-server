@@ -157,6 +157,67 @@ node get-refresh-token.js
    npm start
    ```
 
+   Or with specific credentials:
+   ```bash
+   npm start -- --credentials-path=/path/to/service-account.json --project-id=your-project-id
+   ```
+
+4. Run the SSE server with authentication:
+   ```bash
+   npx mcp-proxy-auth node dist/index.js
+   ```
+
+### Implementing Authentication in SSE Server
+
+The SSE server uses the [mcp-proxy-auth](https://www.npmjs.com/package/mcp-proxy-auth) package for authentication. To implement authentication:
+
+1. Install the package:
+   ```bash
+   npm install mcp-proxy-auth
+   ```
+
+2. Set the `AUTH_SERVER_URL` environment variable to point to your API key verification endpoint:
+   ```bash
+   export AUTH_SERVER_URL=https://your-auth-server.com/verify
+   ```
+
+3. Run the SSE server with authentication:
+   ```bash
+   npx mcp-proxy-auth node dist/index.js
+   ```
+
+4. The SSE URL will be available at:
+   ```
+   localhost:8080/sse?apiKey=apikey
+   ```
+
+   Replace `apikey` with your actual API key for authentication.
+
+The `mcp-proxy-auth` package acts as a proxy that:
+- Intercepts requests to your SSE server
+- Verifies API keys against your authentication server
+- Only allows authenticated requests to reach your SSE endpoint
+
+### Docker Support
+
+You can also run the server using Docker:
+
+1. Build the Docker image:
+   ```bash
+   docker build -t google-docs-mcp-server .
+   ```
+
+2. Run the container:
+   ```bash
+   docker run -p 8080:8080 \
+     -e GOOGLE_CLOUD_PROJECT_ID=your-project-id \
+     -e GOOGLE_OAUTH_CLIENT_ID=your-client-id \
+     -e GOOGLE_OAUTH_CLIENT_SECRET=your-client-secret \
+     -e GOOGLE_OAUTH_REFRESH_TOKEN=your-refresh-token \
+     -e AUTH_SERVER_URL=https://your-auth-server.com/verify \
+     google-docs-mcp-server
+   ```
+
 ## MCP Integration
 
 To use this server with Claude or other MCP-compatible assistants, add it to your MCP settings:

@@ -61,17 +61,6 @@ class GoogleDocsServer {
         },
       }
     );
-
-    this.googleDocs = new GoogleDocsClient({
-      serviceAccountPath,
-      apiKey,
-      projectId,
-      oauthClientId,
-      oauthClientSecret,
-      oauthRefreshToken
-    });
-    
-    // Log authentication information
     if (serviceAccountPath) {
       console.log(`Using service account: ${serviceAccountPath}`);
     }
@@ -82,6 +71,17 @@ class GoogleDocsServer {
       console.log(`Using OAuth credentials with client ID: ${oauthClientId.substring(0, 4)}...`);
     }
     console.log(`Using project ID: ${projectId}`);
+    this.googleDocs = new GoogleDocsClient({
+      serviceAccountPath,
+      apiKey,
+      projectId,
+      oauthClientId,
+      oauthClientSecret,
+      oauthRefreshToken
+    });
+    
+    // Log authentication information
+   
 
     this.setupToolHandlers();
     this.setupErrorHandling();
