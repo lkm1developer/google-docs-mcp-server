@@ -13,6 +13,7 @@ export class GoogleDocsClient {
   private projectId: string;
   private auth: any;
   private tempFilePath: string | null = null;
+  private isOAuth = false;
 
   // Clean up temporary files when the process exits
   constructor(options: {
@@ -23,6 +24,7 @@ export class GoogleDocsClient {
     oauthClientId?: string;
     oauthClientSecret?: string;
     oauthRefreshToken?: string;
+    isOAuth: boolean;
   }) {
     // Set up cleanup handlers for temporary files
     process.on('exit', () => this.cleanup());
@@ -34,12 +36,11 @@ export class GoogleDocsClient {
       this.cleanup();
       process.exit(0);
     });
-  
     // Initialize the client
     // Get project ID from environment variables or constructor parameters
     this.projectId = options.projectId || process.env.GOOGLE_CLOUD_PROJECT_ID || '';
-    
-    if (!this.projectId) {
+    console.log(`Using project ID: ${this.projectId} for Google Docs API ${this.isOAuth}`);
+    if (!this.projectId && !options.isOAuth) {
       throw new Error('GOOGLE_CLOUD_PROJECT_ID environment variable or projectId parameter is required');
     }
     
@@ -53,9 +54,9 @@ export class GoogleDocsClient {
     const serviceAccountPath = options.serviceAccountPath || process.env.GOOGLE_APPLICATION_CREDENTIALS;
     
     // Check if OAuth credentials are provided
-    const oauthClientId = options.oauthClientId || process.env.GOOGLE_OAUTH_CLIENT_ID;
-    const oauthClientSecret = options.oauthClientSecret || process.env.GOOGLE_OAUTH_CLIENT_SECRET;
-    const oauthRefreshToken = options.oauthRefreshToken || process.env.GOOGLE_OAUTH_REFRESH_TOKEN;
+    const oauthClientId = options.oauthClientId || process.env.client_id;
+    const oauthClientSecret = options.oauthClientSecret || process.env.client_secret;
+    const oauthRefreshToken = options.oauthRefreshToken || process.env.refresh_token;
     
     // We need either an API key, a service account (path or JSON), or OAuth credentials
     if (!apiKey && !serviceAccountPath && !serviceAccountJson && !(oauthClientId && oauthClientSecret && oauthRefreshToken)) {

@@ -88,7 +88,7 @@ async function getRefreshToken() {
               console.log(tokens.refresh_token);
               console.log('');
               console.log('Add this refresh token to your .env file as:');
-              console.log('GOOGLE_OAUTH_REFRESH_TOKEN=' + tokens.refresh_token);
+              console.log('refresh_token=' + tokens.refresh_token);
             } else {
               console.log('⚠️ No refresh token was returned. This can happen if:');
               console.log('  1. You\'ve already authorized this application before');

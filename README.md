@@ -51,9 +51,9 @@ A powerful Model Context Protocol (MCP) server implementation for seamless Googl
    GOOGLE_API_KEY=your-api-key
    
    # Option 3: OAuth2 (required for user-specific operations)
-   GOOGLE_OAUTH_CLIENT_ID=your-oauth-client-id
-   GOOGLE_OAUTH_CLIENT_SECRET=your-oauth-client-secret
-   GOOGLE_OAUTH_REFRESH_TOKEN=your-oauth-refresh-token
+   client_id=your-oauth-client-id
+   client_secret=your-oauth-client-secret
+   refresh_token=your-oauth-refresh-token
    ```
 
 ## Authentication Setup
@@ -122,7 +122,7 @@ async function getRefreshToken() {
           
           const { tokens } = await oauth2Client.getToken(queryParams.code);
           console.log('\nRefresh Token:', tokens.refresh_token);
-          console.log('\nAdd this refresh token to your .env file as GOOGLE_OAUTH_REFRESH_TOKEN');
+          console.log('\nAdd this refresh token to your .env file as refresh_token');
           
           resolve(tokens.refresh_token);
         }
@@ -219,9 +219,9 @@ You can also run the server using Docker:
    docker run -p 8080:8080 \
      -e GOOGLE_CLOUD_PROJECT_ID=your-project-id \
      -e GOOGLE_APPLICATION_CREDENTIALS_JSON='{"type":"service_account","project_id":"..."}' \
-     -e GOOGLE_OAUTH_CLIENT_ID=your-client-id \
-     -e GOOGLE_OAUTH_CLIENT_SECRET=your-client-secret \
-     -e GOOGLE_OAUTH_REFRESH_TOKEN=your-refresh-token \
+     -e client_id=your-client-id \
+     -e client_secret=your-client-secret \
+     -e refresh_token=your-refresh-token \
      -e AUTH_SERVER_URL=https://your-auth-server.com/verify \
      google-docs-mcp-server
    ```
@@ -241,9 +241,9 @@ To use this server with Claude or other MCP-compatible assistants, add it to you
         "GOOGLE_APPLICATION_CREDENTIALS": "/path/to/your-service-account-key.json",
         "GOOGLE_APPLICATION_CREDENTIALS_JSON": "{\"type\":\"service_account\",\"project_id\":\"...\"}",
         "GOOGLE_API_KEY": "your-api-key",
-        "GOOGLE_OAUTH_CLIENT_ID": "your-oauth-client-id",
-        "GOOGLE_OAUTH_CLIENT_SECRET": "your-oauth-client-secret",
-        "GOOGLE_OAUTH_REFRESH_TOKEN": "your-oauth-refresh-token"
+        "client_id": "your-oauth-client-id",
+        "client_secret": "your-oauth-client-secret",
+        "refresh_token": "your-oauth-refresh-token"
       },
       "disabled": false,
       "autoApprove": []

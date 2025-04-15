@@ -22,9 +22,9 @@ const { values } = parseArgs({
     'GOOGLE_APPLICATION_CREDENTIALS_JSON': { type: 'string' },
     'GOOGLE_API_KEY': { type: 'string' },
     'GOOGLE_CLOUD_PROJECT_ID': { type: 'string' },
-    'GOOGLE_OAUTH_CLIENT_ID': { type: 'string' },
-    'GOOGLE_OAUTH_CLIENT_SECRET': { type: 'string' },
-    'GOOGLE_OAUTH_REFRESH_TOKEN': { type: 'string' }
+    'client_id': { type: 'string' },
+    'client_secret': { type: 'string' },
+    'refresh_token': { type: 'string' }
   }
 });
 
@@ -33,15 +33,18 @@ const serviceAccountPath = values['GOOGLE_APPLICATION_CREDENTIALS'] || process.e
 const serviceAccountJson = values['GOOGLE_APPLICATION_CREDENTIALS_JSON'] || process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON;
 const apiKey = values['GOOGLE_API_KEY'] || process.env.GOOGLE_API_KEY;
 const projectId = values['GOOGLE_CLOUD_PROJECT_ID'] || process.env.GOOGLE_CLOUD_PROJECT_ID;
-const oauthClientId = values['GOOGLE_OAUTH_CLIENT_ID'] || process.env.GOOGLE_OAUTH_CLIENT_ID;
-const oauthClientSecret = values['GOOGLE_OAUTH_CLIENT_SECRET'] || process.env.GOOGLE_OAUTH_CLIENT_SECRET;
-const oauthRefreshToken = values['GOOGLE_OAUTH_REFRESH_TOKEN'] || process.env.GOOGLE_OAUTH_REFRESH_TOKEN;
-
+const oauthClientId = values['client_id'] || process.env.client_id;
+const oauthClientSecret = values['client_secret'] || process.env.client_secret;
+const oauthRefreshToken = values['refresh_token'] || process.env.refresh_token;
+let isoAuthEnabled = false;
 if (!serviceAccountPath && !serviceAccountJson && !apiKey && !(oauthClientId && oauthClientSecret && oauthRefreshToken)) {
   throw new Error('Either GOOGLE_APPLICATION_CREDENTIALS, GOOGLE_APPLICATION_CREDENTIALS_JSON, GOOGLE_API_KEY, or OAuth credentials are required');
 }
-
-if (!projectId) {
+if(oauthClientId && oauthClientSecret && oauthRefreshToken) {
+  isoAuthEnabled = true
+}
+console.log({ oauthClientId , oauthClientSecret , oauthRefreshToken, isoAuthEnabled})
+if (!projectId && !isoAuthEnabled) {
   throw new Error('GOOGLE_CLOUD_PROJECT_ID environment variable is required');
 }
 
@@ -73,6 +76,10 @@ class GoogleDocsServer {
       console.log(`Using OAuth credentials with client ID: ${oauthClientId.substring(0, 4)}...`);
     }
     console.log(`Using project ID: ${projectId}`);
+    let isoAuthEnabled = false;
+    if(oauthClientId && oauthClientSecret && oauthRefreshToken) {
+      isoAuthEnabled = true
+    }
     this.googleDocs = new GoogleDocsClient({
       serviceAccountPath,
       serviceAccountJson,
@@ -80,7 +87,8 @@ class GoogleDocsServer {
       projectId,
       oauthClientId,
       oauthClientSecret,
-      oauthRefreshToken
+      oauthRefreshToken,
+      isOAuth: isoAuthEnabled
     });
     
     // Log authentication information
