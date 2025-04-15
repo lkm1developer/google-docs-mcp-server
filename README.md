@@ -40,8 +40,12 @@ A powerful Model Context Protocol (MCP) server implementation for seamless Googl
    
    # Choose one authentication method:
    
-   # Option 1: Service Account (recommended for production)
+   # Option 1A: Service Account with file path (recommended for production)
    GOOGLE_APPLICATION_CREDENTIALS=path/to/your-service-account-key.json
+   
+   # Option 1B: Service Account with JSON content directly
+   # Useful for environments where you can't create files
+   GOOGLE_APPLICATION_CREDENTIALS_JSON={"type":"service_account","project_id":"...","private_key":"...","client_email":"..."}
    
    # Option 2: API Key (simpler for development)
    GOOGLE_API_KEY=your-api-key
@@ -159,7 +163,10 @@ node get-refresh-token.js
 
    Or with specific credentials:
    ```bash
-   npm start -- --credentials-path=/path/to/service-account.json --project-id=your-project-id
+   npm start -- --GOOGLE_APPLICATION_CREDENTIALS=/path/to/service-account.json --GOOGLE_CLOUD_PROJECT_ID=your-project-id
+   
+   # Or with JSON content directly:
+   npm start -- --GOOGLE_APPLICATION_CREDENTIALS_JSON='{"type":"service_account","project_id":"..."}' --GOOGLE_CLOUD_PROJECT_ID=your-project-id
    ```
 
 4. Run the SSE server with authentication:
@@ -211,6 +218,7 @@ You can also run the server using Docker:
    ```bash
    docker run -p 8080:8080 \
      -e GOOGLE_CLOUD_PROJECT_ID=your-project-id \
+     -e GOOGLE_APPLICATION_CREDENTIALS_JSON='{"type":"service_account","project_id":"..."}' \
      -e GOOGLE_OAUTH_CLIENT_ID=your-client-id \
      -e GOOGLE_OAUTH_CLIENT_SECRET=your-client-secret \
      -e GOOGLE_OAUTH_REFRESH_TOKEN=your-refresh-token \
@@ -231,6 +239,7 @@ To use this server with Claude or other MCP-compatible assistants, add it to you
       "env": {
         "GOOGLE_CLOUD_PROJECT_ID": "your-project-id",
         "GOOGLE_APPLICATION_CREDENTIALS": "/path/to/your-service-account-key.json",
+        "GOOGLE_APPLICATION_CREDENTIALS_JSON": "{\"type\":\"service_account\",\"project_id\":\"...\"}",
         "GOOGLE_API_KEY": "your-api-key",
         "GOOGLE_OAUTH_CLIENT_ID": "your-oauth-client-id",
         "GOOGLE_OAUTH_CLIENT_SECRET": "your-oauth-client-secret",

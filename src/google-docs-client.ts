@@ -2,6 +2,8 @@ import { google, docs_v1 } from 'googleapis';
 import * as dotenv from 'dotenv';
 import * as fs from 'fs';
 import * as path from 'path';
+import * as os from 'os';
+import * as crypto from 'crypto';
 
 dotenv.config();
 
@@ -10,15 +12,30 @@ export class GoogleDocsClient {
   private driveClient: any; // Using any type to bypass TypeScript errors
   private projectId: string;
   private auth: any;
-  
+  private tempFilePath: string | null = null;
+
+  // Clean up temporary files when the process exits
   constructor(options: {
     serviceAccountPath?: string;
+    serviceAccountJson?: string;
     apiKey?: string;
     projectId?: string;
     oauthClientId?: string;
     oauthClientSecret?: string;
     oauthRefreshToken?: string;
   }) {
+    // Set up cleanup handlers for temporary files
+    process.on('exit', () => this.cleanup());
+    process.on('SIGINT', () => {
+      this.cleanup();
+      process.exit(0);
+    });
+    process.on('SIGTERM', () => {
+      this.cleanup();
+      process.exit(0);
+    });
+  
+    // Initialize the client
     // Get project ID from environment variables or constructor parameters
     this.projectId = options.projectId || process.env.GOOGLE_CLOUD_PROJECT_ID || '';
     
@@ -29,6 +46,9 @@ export class GoogleDocsClient {
     // Check if API key is provided
     const apiKey = options.apiKey || process.env.GOOGLE_API_KEY;
     
+    // Check if service account JSON content is provided
+    const serviceAccountJson = options.serviceAccountJson || process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON;
+    
     // Check if service account path is provided
     const serviceAccountPath = options.serviceAccountPath || process.env.GOOGLE_APPLICATION_CREDENTIALS;
     
@@ -37,15 +57,39 @@ export class GoogleDocsClient {
     const oauthClientSecret = options.oauthClientSecret || process.env.GOOGLE_OAUTH_CLIENT_SECRET;
     const oauthRefreshToken = options.oauthRefreshToken || process.env.GOOGLE_OAUTH_REFRESH_TOKEN;
     
-    // We need either an API key, a service account, or OAuth credentials
-    if (!apiKey && !serviceAccountPath && !(oauthClientId && oauthClientSecret && oauthRefreshToken)) {
-      throw new Error('Either GOOGLE_API_KEY, GOOGLE_APPLICATION_CREDENTIALS, or OAuth credentials must be provided');
+    // We need either an API key, a service account (path or JSON), or OAuth credentials
+    if (!apiKey && !serviceAccountPath && !serviceAccountJson && !(oauthClientId && oauthClientSecret && oauthRefreshToken)) {
+      throw new Error('Either GOOGLE_API_KEY, GOOGLE_APPLICATION_CREDENTIALS, GOOGLE_APPLICATION_CREDENTIALS_JSON, or OAuth credentials must be provided');
     }
     
     if (apiKey) {
       // Use API key authentication
       console.log('Using API key authentication');
       this.auth = apiKey;
+    } else if (serviceAccountJson) {
+      // Use service account JSON content
+      console.log('Using service account JSON content for authentication');
+      
+      try {
+        // Create a temporary file with the JSON content
+        const tempDir = os.tmpdir();
+        const randomId = crypto.randomBytes(16).toString('hex');
+        this.tempFilePath = path.join(tempDir, `google-credentials-${randomId}.json`);
+        
+        // Write the JSON content to the temporary file
+        fs.writeFileSync(this.tempFilePath, serviceAccountJson);
+        
+        // Use the temporary file for authentication
+        this.auth = new google.auth.GoogleAuth({
+          keyFile: this.tempFilePath,
+          scopes: [
+            'https://www.googleapis.com/auth/documents',
+            'https://www.googleapis.com/auth/drive'
+          ]
+        });
+      } catch (error: any) {
+        throw new Error(`Failed to create temporary credentials file: ${error.message}`);
+      }
     } else if (serviceAccountPath) {
       // Check if the credentials file exists
       if (!fs.existsSync(serviceAccountPath)) {
@@ -53,7 +97,7 @@ export class GoogleDocsClient {
       }
       
       // Use service account authentication
-      console.log('Using service account authentication');
+      console.log('Using service account authentication from file');
       this.auth = new google.auth.GoogleAuth({
         keyFile: serviceAccountPath,
         scopes: [
@@ -434,5 +478,20 @@ export class GoogleDocsClient {
         }
       }
     ];
+  }
+
+  /**
+   * Clean up any temporary files created for service account JSON
+   */
+  private cleanup(): void {
+    if (this.tempFilePath && fs.existsSync(this.tempFilePath)) {
+      try {
+        fs.unlinkSync(this.tempFilePath);
+        console.log(`Cleaned up temporary credentials file: ${this.tempFilePath}`);
+        this.tempFilePath = null;
+      } catch (error: any) {
+        console.error(`Failed to clean up temporary credentials file: ${error.message}`);
+      }
+    }
   }
 }

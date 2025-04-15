@@ -18,25 +18,27 @@ dotenv.config();
 // Parse command line arguments
 const { values } = parseArgs({
   options: {
-    'credentials-path': { type: 'string' },
-    'api-key': { type: 'string' },
-    'project-id': { type: 'string' },
-    'oauth-client-id': { type: 'string' },
-    'oauth-client-secret': { type: 'string' },
-    'oauth-refresh-token': { type: 'string' }
+    'GOOGLE_APPLICATION_CREDENTIALS': { type: 'string' },
+    'GOOGLE_APPLICATION_CREDENTIALS_JSON': { type: 'string' },
+    'GOOGLE_API_KEY': { type: 'string' },
+    'GOOGLE_CLOUD_PROJECT_ID': { type: 'string' },
+    'GOOGLE_OAUTH_CLIENT_ID': { type: 'string' },
+    'GOOGLE_OAUTH_CLIENT_SECRET': { type: 'string' },
+    'GOOGLE_OAUTH_REFRESH_TOKEN': { type: 'string' }
   }
 });
 
 // Get authentication parameters
-const serviceAccountPath = values['credentials-path'] || process.env.GOOGLE_APPLICATION_CREDENTIALS;
-const apiKey = values['api-key'] || process.env.GOOGLE_API_KEY;
-const projectId = values['project-id'] || process.env.GOOGLE_CLOUD_PROJECT_ID;
-const oauthClientId = values['oauth-client-id'] || process.env.GOOGLE_OAUTH_CLIENT_ID;
-const oauthClientSecret = values['oauth-client-secret'] || process.env.GOOGLE_OAUTH_CLIENT_SECRET;
-const oauthRefreshToken = values['oauth-refresh-token'] || process.env.GOOGLE_OAUTH_REFRESH_TOKEN;
+const serviceAccountPath = values['GOOGLE_APPLICATION_CREDENTIALS'] || process.env.GOOGLE_APPLICATION_CREDENTIALS;
+const serviceAccountJson = values['GOOGLE_APPLICATION_CREDENTIALS_JSON'] || process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON;
+const apiKey = values['GOOGLE_API_KEY'] || process.env.GOOGLE_API_KEY;
+const projectId = values['GOOGLE_CLOUD_PROJECT_ID'] || process.env.GOOGLE_CLOUD_PROJECT_ID;
+const oauthClientId = values['GOOGLE_OAUTH_CLIENT_ID'] || process.env.GOOGLE_OAUTH_CLIENT_ID;
+const oauthClientSecret = values['GOOGLE_OAUTH_CLIENT_SECRET'] || process.env.GOOGLE_OAUTH_CLIENT_SECRET;
+const oauthRefreshToken = values['GOOGLE_OAUTH_REFRESH_TOKEN'] || process.env.GOOGLE_OAUTH_REFRESH_TOKEN;
 
-if (!serviceAccountPath && !apiKey && !(oauthClientId && oauthClientSecret && oauthRefreshToken)) {
-  throw new Error('Either GOOGLE_APPLICATION_CREDENTIALS, GOOGLE_API_KEY, or OAuth credentials are required');
+if (!serviceAccountPath && !serviceAccountJson && !apiKey && !(oauthClientId && oauthClientSecret && oauthRefreshToken)) {
+  throw new Error('Either GOOGLE_APPLICATION_CREDENTIALS, GOOGLE_APPLICATION_CREDENTIALS_JSON, GOOGLE_API_KEY, or OAuth credentials are required');
 }
 
 if (!projectId) {
@@ -73,6 +75,7 @@ class GoogleDocsServer {
     console.log(`Using project ID: ${projectId}`);
     this.googleDocs = new GoogleDocsClient({
       serviceAccountPath,
+      serviceAccountJson,
       apiKey,
       projectId,
       oauthClientId,
