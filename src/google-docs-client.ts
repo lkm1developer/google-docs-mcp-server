@@ -462,6 +462,56 @@ export class GoogleDocsClient {
   }
   
   /**
+   * Append content to the end of a Google Doc
+   * @param documentId ID of the document to append to
+   * @param content Content to append (plain text)
+   * @returns Updated document details
+   */
+  async appendDocument(documentId: string, content: string): Promise<any> {
+    try {
+      // Get the current document to find its end index
+      const currentDoc = await this.docsClient.documents.get({
+        documentId
+      });
+      
+      // Get the end index of the document
+      const endIndex = currentDoc.data.body?.content 
+        ? currentDoc.data.body.content[currentDoc.data.body.content.length - 1].endIndex || 1
+        : 1;
+      
+      // Create a request to insert text at the end of the document
+      const requests = [
+        {
+          insertText: {
+            location: {
+              index: endIndex - 1
+            },
+            text: content
+          }
+        }
+      ];
+      
+      // Update the document with the new content
+      await this.docsClient.documents.batchUpdate({
+        documentId,
+        requestBody: {
+          requests
+        }
+      });
+      
+      // Get the updated document
+      const document = await this.docsClient.documents.get({
+        documentId
+      });
+      
+      return document.data;
+    } catch (error: any) {
+      console.error('Error appending to document:', error);
+      return { error: error.message };
+    }
+  }
+
+  /**
    * Helper method to convert plain text content to Google Docs API requests
    * @param content Plain text content
    * @returns Array of requests for batchUpdate

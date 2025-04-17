@@ -176,6 +176,24 @@ class GoogleDocsServer {
           }
         },
         {
+          name: 'google_docs_append',
+          description: 'Append content to the end of a Google Doc',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              documentId: { 
+                type: 'string', 
+                description: 'ID of the document to append to' 
+              },
+              content: { 
+                type: 'string', 
+                description: 'Content to append (plain text)' 
+              }
+            },
+            required: ['documentId', 'content']
+          }
+        },
+        {
           name: 'google_docs_list',
           description: 'List Google Docs accessible to the authenticated user',
           inputSchema: {
@@ -314,6 +332,19 @@ class GoogleDocsServer {
               args.documentId as string,
               args.content as string,
               args.replaceAll as boolean | undefined
+            );
+            return {
+              content: [{
+                type: 'text',
+                text: JSON.stringify(result, null, 2)
+              }]
+            };
+          }
+          
+          case 'google_docs_append': {
+            const result = await this.googleDocs.appendDocument(
+              args.documentId as string,
+              args.content as string
             );
             return {
               content: [{
